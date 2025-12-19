@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 add some thing about 
 hi
 helo
+=======
+hello
+>>>>>>> zio
+coffee
