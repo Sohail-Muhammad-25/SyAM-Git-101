@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; background: #444; color: white; }
+        .game-container { display: flex; align-items: center; gap: 40px; margin-top: 20px; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; background: black; padding: 10px; border-radius: 8px; }
+        .square { width: 100px; height: 100px; background: lightblue; border-radius: 4px;
+                  display: flex; align-items: center; justify-content: center; font: bold 45px sans-serif; cursor: pointer; transition: 0.3s; }
+        
+        .x-color { color: green; }
+        .o-color { color: blue; }
+
+        .drag-piece { width: 80px; height: 80px; background: white; border: 3px solid #333; border-radius: 8px;
+                      display: flex; align-items: center; justify-content: center; font: bold 35px sans-serif; cursor: grab; }
+        #p-X { border-color: green; color: green; }
+        #p-O { border-color: blue; color: blue; }
+        
+        .status { margin: 20px; padding: 10px 20px; background: #333; border: 2px solid white; color: white; border-radius: 20px; font-weight: bold; min-width: 150px; text-align: center; }
+        button { padding: 10px 25px; border: 2px solid white; border-radius: 5px; background: black; color: white; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        button:hover { background: #222; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe Strategy</h1>
+    <div class="game-container">
+        <div id="p-X" class="drag-piece" draggable="true" ondragstart="drag(event)">X</div>
+        <div id="board" class="board"></div>
+        <div id="p-O" class="drag-piece" draggable="true" ondragstart="drag(event)">O</div>
+    </div>
+    <div class="status" id="msg">Toss: X starts</div>
+    <button onclick="restart()">Reset Game</button>
+
+    <script>
+        const boardEl = document.getElementById('board');
+        const msg = document.getElementById('msg');
+        let currentPlayer = 'X', gameOver = false, movesCount = 0;
+        const winCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+        for (let i = 0; i < 9; i++) {
+            const sq = document.createElement('div');
+            sq.className = 'square';
+            sq.id = 'sq-' + i;
+
+            sq.onclick = () => {
+                if (gameOver) return;
+                if (sq.textContent === currentPlayer) {
+                    sq.textContent = '';
+                    sq.className = 'square';
+                    movesCount--;
+                } else if (sq.textContent === '') {
+                    executeMove(i);
+                }
+            };
+
+            sq.ondragover = (e) => e.preventDefault();
+            sq.ondrop = (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.getData("text") === currentPlayer) executeMove(i);
+            };
+            boardEl.appendChild(sq);
+        }
+
+        function drag(ev) {
+            if (gameOver || ev.target.textContent !== currentPlayer) return ev.preventDefault();
+            ev.dataTransfer.setData("text", ev.target.textContent);
+        }
+
+        function executeMove(idx) {
+            const sqs = document.getElementsByClassName('square');
+            if (sqs[idx].textContent !== '' || gameOver) return;
+
+            sqs[idx].textContent = currentPlayer;
+            sqs[idx].classList.add(currentPlayer === 'X' ? 'x-color' : 'o-color');
+            movesCount++;
+            
+            if (movesCount === 9) {
+                checkFinalWinner(sqs);
+                return;
+            }
+
+            currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
+            msg.innerHTML = `<span class="${currentPlayer === 'X' ? 'x-color' : 'o-color'}">${currentPlayer}'s turn!</span>`;
+        }
+
+        function checkFinalWinner(sqs) {
+            gameOver = true;
+            let scoreX = 0, scoreO = 0;
+
+            winCombos.forEach(c => {
+                const [a, b, c_idx] = c;
+                if (sqs[a].textContent === 'X' && sqs[b].textContent === 'X' && sqs[c_idx].textContent === 'X') scoreX++;
+                if (sqs[a].textContent === 'O' && sqs[b].textContent === 'O' && sqs[c_idx].textContent === 'O') scoreO++;
+            });
+
+            if (scoreX > scoreO) msg.innerHTML = "X WINS 🏆";
+            else if (scoreO > scoreX) msg.innerHTML = "O WINS 🏆";
+            else msg.textContent = "Draw! 🤝";
+        }
+
+        function restart() {
+            [...document.getElementsByClassName('square')].forEach(s => {
+                s.textContent = '';
+                s.className = 'square';
+            });
+            currentPlayer = 'X';
+            gameOver = false;
+            movesCount = 0;
+            msg.textContent = `Toss: X starts`;
+        }
+    </script>
+</body>
+</html>
