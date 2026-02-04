@@ -4,21 +4,31 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; background: #444; color: white; }
         .game-container { display: flex; align-items: center; gap: 40px; margin-top: 20px; }
-        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; background: black; padding: 10px; border-radius: 8px; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; background: black; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .square { width: 100px; height: 100px; background: lightblue; border-radius: 4px;
                   display: flex; align-items: center; justify-content: center; font: bold 45px sans-serif; cursor: pointer; transition: 0.3s; }
         
-        .x-color { color: green; }
-        .o-color { color: blue; }
+        /* Ombre specifiche per X e O */
+        .x-color { 
+            color: green; 
+            text-shadow: 2px 2px 4px rgba(0, 255, 0, 0.3), 0 0 10px rgba(0, 128, 0, 0.2); 
+        }
+        .o-color { 
+            color: blue; 
+            text-shadow: 2px 2px 4px rgba(0, 0, 255, 0.3), 0 0 10px rgba(0, 0, 255, 0.2); 
+        }
 
         .drag-piece { width: 80px; height: 80px; background: white; border: 3px solid #333; border-radius: 8px;
-                      display: flex; align-items: center; justify-content: center; font: bold 35px sans-serif; cursor: grab; }
-        #p-X { border-color: green; color: green; }
-        #p-O { border-color: blue; color: blue; }
+                      display: flex; align-items: center; justify-content: center; font: bold 35px sans-serif; cursor: grab;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .drag-piece:active { transform: scale(1.1); cursor: grabbing; }
+
+        #p-X { border-color: green; color: green; text-shadow: 1px 1px 2px rgba(0,128,0,0.3); }
+        #p-O { border-color: blue; color: blue; text-shadow: 1px 1px 2px rgba(0,0,255,0.3); }
         
-        .status { margin: 20px; padding: 10px 20px; background: #333; border: 2px solid white; color: white; border-radius: 20px; font-weight: bold; min-width: 150px; text-align: center; }
+        .status { margin: 20px; padding: 10px 20px; background: #333; border: 2px solid white; color: white; border-radius: 20px; font-weight: bold; min-width: 150px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         button { padding: 10px 25px; border: 2px solid white; border-radius: 5px; background: black; color: white; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        button:hover { background: #222; transform: scale(1.05); }
+        button:hover { background: #222; transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
@@ -56,7 +66,8 @@
             sq.ondragover = (e) => e.preventDefault();
             sq.ondrop = (e) => {
                 e.preventDefault();
-                if (e.dataTransfer.getData("text") === currentPlayer) executeMove(i);
+                const data = e.dataTransfer.getData("text");
+                if (data === currentPlayer) executeMove(i);
             };
             boardEl.appendChild(sq);
         }
@@ -80,7 +91,7 @@
             }
 
             currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
-            msg.innerHTML = `<span class="${currentPlayer === 'X' ? 'x-color' : 'o-color'}">${currentPlayer}'s turn!</span>`;
+            msg.innerHTML = `Turno di: <span class="${currentPlayer === 'X' ? 'x-color' : 'o-color'}">${currentPlayer}</span>`;
         }
 
         function checkFinalWinner(sqs) {
@@ -93,20 +104,21 @@
                 if (sqs[a].textContent === 'O' && sqs[b].textContent === 'O' && sqs[c_idx].textContent === 'O') scoreO++;
             });
 
-            if (scoreX > scoreO) msg.innerHTML = "X WINS 🏆";
-            else if (scoreO > scoreX) msg.innerHTML = "O WINS 🏆";
+            if (scoreX > scoreO) msg.innerHTML = "<span class='x-color'>X WINS 🏆</span>";
+            else if (scoreO > scoreX) msg.innerHTML = "<span class='o-color'>O WINS 🏆</span>";
             else msg.textContent = "Draw! 🤝";
         }
 
         function restart() {
-            [...document.getElementsByClassName('square')].forEach(s => {
+            const sqs = document.getElementsByClassName('square');
+            for(let s of sqs) {
                 s.textContent = '';
                 s.className = 'square';
-            });
+            }
             currentPlayer = 'X';
             gameOver = false;
             movesCount = 0;
-            msg.textContent = `Toss: X starts`;
+            msg.innerHTML = "Toss: <span class='x-color'>X starts</span>";
         }
     </script>
 </body>
